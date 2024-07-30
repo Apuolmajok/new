@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1020905258385",
+    "project_id": "sharecare-67998",
+    "storage_bucket": "sharecare-67998.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1020905258385:android:f6c7af89b890569f6eae30",
+        "android_client_info": {
+          "package_name": "com.example.nileeats"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqsyoQD3Q2AI33cWtqZHzNgywdT41t1e0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
