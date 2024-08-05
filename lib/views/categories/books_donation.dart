@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sharecare/common/background_container.dart';
 import 'package:sharecare/constants/constants.dart';
-
-
+import 'package:sharecare/views/categories/widget/booksconfirm.dart';
+import 'package:sharecare/views/entrypoint.dart';
 
 
 class BooksDonationForm extends StatefulWidget {
@@ -14,8 +15,8 @@ class BooksDonationForm extends StatefulWidget {
 
 class _BooksDonationFormState extends State<BooksDonationForm> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _pickupDateController = TextEditingController();
-  final TextEditingController _preferredTimeController = TextEditingController();
+  final TextEditingController _bookDetailsController = TextEditingController();
+  final TextEditingController _wishMessageController = TextEditingController();
 
   String? _bookCategory;
   String? _vehicleType;
@@ -23,6 +24,51 @@ class _BooksDonationFormState extends State<BooksDonationForm> {
   int _quantity = 1;
 
   final Color turquoise = Colors.teal;
+
+  void _submitDonation(BuildContext context) async {
+    if (_formKey.currentState!.validate()) {
+      final donation = {
+        'category': 'Books',
+        'bookCategory': _bookCategory,
+        'bookDetails': _bookDetailsController.text,
+        'quantity': _quantity,
+        'vehicleType': _vehicleType,
+        'isAnonymous': _isAnonymous,
+        'wishMessage': _wishMessageController.text,
+        'donationDate': DateTime.now(),
+      };
+
+      await FirebaseFirestore.instance.collection('donations').add(donation);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Thank you for donating these books!')),
+      );
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => MainScreen()),
+        (Route<dynamic> route) => false,
+      );
+    }
+  }
+
+  void _navigateToConfirmation() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ConfirmationPage3(
+          bookCategory: _bookCategory,
+          vehicleType: _vehicleType,
+          quantity: _quantity,
+          isAnonymous: _isAnonymous,
+        ),
+      ),
+    ).then((value) {
+      if (value == true) {
+        _submitDonation(context);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +100,7 @@ class _BooksDonationFormState extends State<BooksDonationForm> {
                 _buildAnonymousSwitch(),
                 const SizedBox(height: 16.0),
                 ElevatedButton(
-                  onPressed: _submitForm,
+                  onPressed: _navigateToConfirmation,
                   child: const Text('Donate'),
                 ),
               ],
@@ -85,6 +131,7 @@ class _BooksDonationFormState extends State<BooksDonationForm> {
 
   Widget _buildBookDetailsField() {
     return TextFormField(
+      controller: _bookDetailsController,
       decoration: const InputDecoration(
         labelText: 'Book Details',
         hintText: 'e.g. 1. "The Great Gatsby" - 5\n2. "To Kill a Mockingbird" - 3',
@@ -163,6 +210,7 @@ class _BooksDonationFormState extends State<BooksDonationForm> {
 
   Widget _buildWishMessageField() {
     return TextFormField(
+      controller: _wishMessageController,
       decoration: const InputDecoration(
         labelText: 'Add a message (optional)',
         border: OutlineInputBorder(),
@@ -186,23 +234,5 @@ class _BooksDonationFormState extends State<BooksDonationForm> {
         ),
       ],
     );
-  }
-
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      // Process the data
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Form submitted successfully!')),
-
-
-     
-      // Navigator.push(
-      //   context,
-      //   MaterialPageRoute(
-      //     builder: (context) => ClothesDonationForm(),
-      //   ),
-      // );
-      );
-    }
   }
 }

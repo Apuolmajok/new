@@ -1,60 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sharecare/constants/constants.dart';
-import 'package:sharecare/views/authentication/loginpage.dart';
-import 'package:sharecare/views/entrypoint.dart';
 
-class ResetPasswordPage extends StatefulWidget {
-  const ResetPasswordPage({super.key});
+class RequestPasswordResetPage extends StatefulWidget {
+  const RequestPasswordResetPage({super.key});
 
   @override
-  State<ResetPasswordPage> createState() => _ResetPasswordPageState();
+  State<RequestPasswordResetPage> createState() => _RequestPasswordResetPageState();
 }
 
-class _ResetPasswordPageState extends State<ResetPasswordPage> {
+class _RequestPasswordResetPageState extends State<RequestPasswordResetPage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  void _resetPassword() async {
-    final newPassword = _passwordController.text;
-    final confirmPassword = _confirmPasswordController.text;
-
-    if (newPassword != confirmPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Passwords do not match'),
-        ),
-      );
-      return;
-    }
+  void _sendPasswordResetEmail() async {
+    final email = _emailController.text;
 
     try {
-      // Assuming user is already signed in and you want to update the password
-      User? user = _auth.currentUser;
-      if (user != null) {
-        await user.updatePassword(newPassword);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Password has been updated'),
-          ),
-        );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No user is currently signed in'),
-          ),
-        );
-      }
+      await _auth.sendPasswordResetEmail(email: email);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password reset email sent'),
+        ),
+      );
+      Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to update password: $e'),
+          content: Text('Failed to send password reset email: $e'),
         ),
       );
     }
@@ -65,16 +39,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: kPrimary,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => MainScreen()),
-            );
-          },
-        ),
+        title: const Text('Reset Password'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -90,62 +55,42 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                     child: Text(
                       'Reset Password',
                       style: TextStyle(
-                        fontSize: 40, // Font size for the title
-                        fontWeight: FontWeight.bold, // Bold text for the title
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Please fill out the information below in order to reset your password.',
+                    'Enter your email address to receive a password reset link.',
                     style: TextStyle(
-                      fontSize: 16, // Font size for the description
-                      color: Colors.grey[700], // Text color
+                      fontSize: 16,
+                      color: Colors.grey[700],
                     ),
                   ),
                   const SizedBox(height: 32),
                   TextFormField(
-                    controller: _passwordController,
+                    controller: _emailController,
                     decoration: const InputDecoration(
-                      labelText: 'New Password',
+                      labelText: 'Email',
                       border: OutlineInputBorder(),
                       contentPadding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter your password!';
+                        return 'Please enter your email!';
                       }
                       return null;
                     },
-                    obscureText: true,
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _confirmPasswordController,
-                    decoration: const InputDecoration(
-                      labelText: 'Confirm Password',
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please confirm your password!';
-                      }
-                      if (value != _passwordController.text) {
-                        return 'Passwords do not match';
-                      }
-                      return null;
-                    },
-                    obscureText: true,
                   ),
                   const SizedBox(height: 32),
                   ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState?.validate() ?? false) {
-                        _resetPassword();
+                        _sendPasswordResetEmail();
                       }
                     },
-                    child: const Text('Submit'),
+                    child: const Text('Send Reset Email'),
                   ),
                 ],
               ),

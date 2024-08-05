@@ -7,7 +7,10 @@ import 'package:sharecare/constants/constants.dart';
 import 'package:sharecare/views/tracker/find_agent4.dart';
 
 class AddressDetailsPage extends StatefulWidget {
+  const AddressDetailsPage({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _AddressDetailsPageState createState() => _AddressDetailsPageState();
 }
 

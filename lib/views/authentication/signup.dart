@@ -5,7 +5,8 @@ import 'package:sharecare/views/authentication/email_verification.dart';
 import 'package:sharecare/views/authentication/loginpage.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:sharecare/services/auth_service.dart';
-import 'package:sharecare/views/vendor/vendor_admin.dart';
+import 'package:sharecare/views/vendor/vendor_rigistration_form.dart';
+// Page to ask for business registration or go to the dashboard
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -36,7 +37,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           content: Text('Please fill out all fields'),
         ),
       );
-      
+      return;
     } else if (password != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -47,31 +48,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
           backgroundColor: kPrimary,
         ),
       );
-     
-    }else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => EmailverificationPage()),
-      );
+      return;
     }
 
     try {
       auth.User? user = await _authService.registerWithEmailPassword(name, email, password, _selectedRole);
       if (user != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Registration successful. Please verify your email.',
+              style: TextStyle(color: kSecondary),
+            ),
+            backgroundColor: kPrimary,
+          ),
+        );
         if (_selectedRole == 'donee') {
-          String? vendorId = await _authService.getVendorId(user.uid);
-          if (vendorId != null) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => VendorAdminDashboard(vendorId: vendorId)),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Vendor registration failed.'),
-              ),
-            );
-          }
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => VendorRegistrationScreen(userId: user.uid)),
+          );
         } else {
           Navigator.pushReplacement(
             context,
@@ -92,8 +88,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
     } catch (e) {
       print("Sign up error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('An error occurred during registration. Please try again.',
+        SnackBar(
+          content: Text(
+            'An error occurred during registration: $e',
             style: TextStyle(color: kOffWhite),
           ),
           backgroundColor: kPrimaryLight,
@@ -294,15 +291,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 CustomButton(
                   text: 'Sign Up',
                   textColor: kOffWhite,
-                 
                   onPressed: _signUp,
                 ),
-                CustomButton(
-                  text: 'Verify phone',
-                  textColor: kOffWhite,
-                 
-                  onPressed: _verifyPhone,
-                ),
+                
                 const Padding(
                   padding: EdgeInsets.only(top: 10),
                   child: Text(

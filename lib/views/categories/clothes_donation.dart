@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sharecare/models/category_model/clothes_model.dart';
-import 'package:sharecare/views/categories/funds.dart';
+import 'package:sharecare/common/app_style.dart';
+import 'package:sharecare/common/reusabletext.dart';
+import 'package:sharecare/constants/constants.dart';
+import 'package:sharecare/views/categories/confirm_clthes.dart';
+import 'package:sharecare/views/entrypoint.dart';
 
 class ClothesDonationForm extends StatefulWidget {
   const ClothesDonationForm({super.key});
@@ -12,94 +15,150 @@ class ClothesDonationForm extends StatefulWidget {
 
 class _ClothesDonationFormState extends State<ClothesDonationForm> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _clothesDetailsController = TextEditingController();
-  final TextEditingController _messageController = TextEditingController();
+  final TextEditingController _clothesItemsController = TextEditingController();
+  final TextEditingController _wishMessageController = TextEditingController();
 
+  String? _selectedSource;
   String? _clothesType;
   String? _vehicleType;
   bool _isAnonymous = false;
   int _quantity = 1;
 
-  Future<void> _submitDonation() async {
+  Future<void> _submitDonation(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
-      final donation = ClothesDonation(
-        clothesType: _clothesType,
-        clothesDetails: _clothesDetailsController.text,
-        quantity: _quantity,
-        vehicleType: _vehicleType,
-        isAnonymous: _isAnonymous,
-        message: _messageController.text,
-        donationDate: DateTime.now(),
-      );
+      final donation = {
+        'category': 'Clothes',
+        'source': _selectedSource,
+        'clothesType': _clothesType,
+        'clothesItems': _clothesItemsController.text,
+        'quantity': _quantity,
+        'vehicleType': _vehicleType,
+        'isAnonymous': _isAnonymous,
+        'wishMessage': _wishMessageController.text,
+        'donationDate': DateTime.now(),
+      };
 
-      await FirebaseFirestore.instance.collection('clothes_donations').add(donation.toMap());
+      await FirebaseFirestore.instance.collection('donations').add(donation);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Thank you for your donation!')),
+        const SnackBar(content: Text('Thank you for donating these clothes!')),
       );
 
-      _clothesDetailsController.clear();
-      _messageController.clear();
-      setState(() {
-        _clothesType = null;
-        _vehicleType = null;
-        _isAnonymous = false;
-        _quantity = 1;
-      });
-
-      Navigator.push(
+      Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => FundsPage()),
+        MaterialPageRoute(builder: (context) => MainScreen()),
+        (Route<dynamic> route) => false,
       );
     }
+  }
+
+  void _navigateToConfirmation() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ConfirmationPage2(
+          selectedSource: _selectedSource,
+          clothesType: _clothesType,
+          vehicleType: _vehicleType,
+          quantity: _quantity,
+          isAnonymous: _isAnonymous,
+        ),
+      ),
+    ).then((value) {
+      if (value == true) {
+        _submitDonation(context);
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Clothes Donation'),
+        title: ReusableText(
+          text: "Clothes Donation",
+          style: appStyle(20, kDark, FontWeight.w600),
+        ),
+        backgroundColor: kPrimary,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 16.0),
-              const Text('Select clothes category'),
-              _buildClothesTypeSelector(),
-              const SizedBox(height: 16.0),
-              _buildClothesDetailsField(),
-              const SizedBox(height: 16.0),
-              _buildQuantitySelector(),
-              const SizedBox(height: 16.0),
-              _buildVehicleSelector(),
-              const SizedBox(height: 16.0),
-              _buildWishMessageField(),
-              const SizedBox(height: 16.0),
-              _buildAnonymousSwitch(),
-              const SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: _submitDonation,
-                child: const Text('Donate'),
-              ),
-            ],
+      body: Container(
+        color: kOffWhite,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              children: [
+                const Text('Select Source of Clothes'),
+                _buildSourceSelector(),
+                const SizedBox(height: 16.0),
+                const Text('Clothes Type'),
+                _buildClothesTypeSelector(),
+                const SizedBox(height: 16.0),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: kGrayLight),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: _buildClothesItemsField(),
+                ),
+                const SizedBox(height: 16.0),
+                _buildQuantitySelector(),
+                const SizedBox(height: 16.0),
+                _buildVehicleSelector(),
+                const SizedBox(height: 16.0),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: kPrimaryLight),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: _buildWishMessageField(),
+                ),
+                const SizedBox(height: 16.0),
+                _buildAnonymousSwitch(),
+                const SizedBox(height: 16.0),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: kPrimary,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: _navigateToConfirmation,
+                  child: const Text('Next'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
+  Widget _buildSourceSelector() {
+    return Wrap(
+      spacing: 8.0,
+      children: ['Home', 'Retailers', 'Events', 'Others'].map((source) {
+        return ChoiceChip(
+          label: Text(source),
+          selected: _selectedSource == source,
+          selectedColor: kPrimaryLight,
+          onSelected: (selected) {
+            setState(() {
+              _selectedSource = selected ? source : null;
+            });
+          },
+        );
+      }).toList(),
+    );
+  }
+
   Widget _buildClothesTypeSelector() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: ['Men', 'Women', 'Kids'].map((type) {
+      children: ['Men', 'Women', 'Children'].map((type) {
         return ChoiceChip(
           label: Text(type),
           selected: _clothesType == type,
-          selectedColor: Colors.teal,
+          selectedColor: kPrimaryLight,
           onSelected: (selected) {
             setState(() {
               _clothesType = selected ? type : null;
@@ -110,18 +169,18 @@ class _ClothesDonationFormState extends State<ClothesDonationForm> {
     );
   }
 
-  Widget _buildClothesDetailsField() {
+  Widget _buildClothesItemsField() {
     return TextFormField(
-      controller: _clothesDetailsController,
+      controller: _clothesItemsController,
       decoration: const InputDecoration(
-        labelText: 'Clothes Details',
-        hintText: 'e.g. 1. Men\'s Shirts - 10\n2. Women\'s Dresses - 5\n3. Kids\' Jackets - 8',
+        labelText: 'Clothes Items',
+        hintText: 'e.g. 1. T-shirts - 10\n2. Jeans - 5\n3. Jackets - 3',
         border: OutlineInputBorder(),
       ),
       maxLines: 3,
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Please enter the clothes details';
+          return 'Please enter the clothes items';
         }
         return null;
       },
@@ -131,10 +190,11 @@ class _ClothesDonationFormState extends State<ClothesDonationForm> {
   Widget _buildQuantitySelector() {
     return Row(
       children: [
-        const Text('Quantity'),
+        const Text('Clothes Quantity'),
         const Spacer(),
         IconButton(
-          icon: const Icon(Icons.remove),
+          icon: const Icon(Icons.remove_circle_outline),
+          color: kPrimaryLight,
           onPressed: () {
             if (_quantity > 1) {
               setState(() {
@@ -145,7 +205,8 @@ class _ClothesDonationFormState extends State<ClothesDonationForm> {
         ),
         Text('$_quantity'),
         IconButton(
-          icon: const Icon(Icons.add),
+          icon: const Icon(Icons.add_circle_outline),
+          color: kPrimaryLight,
           onPressed: () {
             setState(() {
               _quantity++;
@@ -160,20 +221,21 @@ class _ClothesDonationFormState extends State<ClothesDonationForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Vehicle Preference'),
+        const Text('Type of vehicle needed?'),
         Row(
           children: [
-            const Icon(Icons.motorcycle),
+            const Icon(Icons.pedal_bike),
             Radio(
-              value: 'Motorcycle',
+              value: 'Bike',
               groupValue: _vehicleType,
               onChanged: (String? value) {
                 setState(() {
                   _vehicleType = value;
                 });
               },
+              activeColor: kPrimaryLight,
             ),
-            const Icon(Icons.car_rental),
+            const Icon(Icons.directions_car),
             Radio(
               value: 'Car',
               groupValue: _vehicleType,
@@ -182,6 +244,7 @@ class _ClothesDonationFormState extends State<ClothesDonationForm> {
                   _vehicleType = value;
                 });
               },
+              activeColor: kPrimaryLight,
             ),
           ],
         ),
@@ -191,9 +254,9 @@ class _ClothesDonationFormState extends State<ClothesDonationForm> {
 
   Widget _buildWishMessageField() {
     return TextFormField(
-      controller: _messageController,
+      controller: _wishMessageController,
       decoration: const InputDecoration(
-        labelText: 'Add a message (optional)',
+        labelText: 'Do you want to send a wish message?',
         border: OutlineInputBorder(),
       ),
       maxLines: 2,
@@ -212,6 +275,7 @@ class _ClothesDonationFormState extends State<ClothesDonationForm> {
               _isAnonymous = value;
             });
           },
+          activeColor: kPrimaryLight,
         ),
       ],
     );

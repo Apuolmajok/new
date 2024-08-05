@@ -8,6 +8,7 @@ import 'package:sharecare/views/Admin_panel/manage_users.dart';
 import 'package:sharecare/views/Admin_panel/manage_vendors.dart';
 import 'package:sharecare/views/Admin_panel/manage_volunteers.dart';
 import 'package:sharecare/views/Admin_panel/manage_quotes.dart';
+import 'package:sharecare/views/vendor/v_form.dart';
 import 'package:sharecare/views/entrypoint.dart';
 
 class AdminHomeScreen extends StatelessWidget {
@@ -30,10 +31,19 @@ class AdminHomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: const SingleChildScrollView(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const VendorRegistrationForm()),
+          );
+        },
+        child: const Icon(Icons.add),
+      ),
+      body:  SingleChildScrollView(
         child: Column(
           children: [
-            ExpansionTile(
+            const ExpansionTile(
               title: Text('Manage Users'),
               children: [
                 SizedBox(
@@ -51,7 +61,7 @@ class AdminHomeScreen extends StatelessWidget {
                 ),
               ],
             ),
-            ExpansionTile(
+            const ExpansionTile(
               title: Text('Manage Donations'),
               children: [
                 SizedBox(
@@ -60,7 +70,7 @@ class AdminHomeScreen extends StatelessWidget {
                 ),
               ],
             ),
-            ExpansionTile(
+            const ExpansionTile(
               title: Text('Manage Products'),
               children: [
                 SizedBox(
@@ -69,7 +79,7 @@ class AdminHomeScreen extends StatelessWidget {
                 ),
               ],
             ),
-            ExpansionTile(
+            const ExpansionTile(
               title: Text('Manage Volunteers'),
               children: [
                 SizedBox(
@@ -78,7 +88,7 @@ class AdminHomeScreen extends StatelessWidget {
                 ),
               ],
             ),
-            ExpansionTile(
+            const ExpansionTile(
               title: Text('Manage Categories'),
               children: [
                 SizedBox(
@@ -87,7 +97,7 @@ class AdminHomeScreen extends StatelessWidget {
                 ),
               ],
             ),
-            ExpansionTile(
+            const ExpansionTile(
               title: Text('Manage Impacts'),
               children: [
                 SizedBox(
@@ -96,7 +106,7 @@ class AdminHomeScreen extends StatelessWidget {
                 ),
               ],
             ),
-            ExpansionTile(
+            const ExpansionTile(
               title: Text('Manage Quotes'),
               children: [
                 SizedBox(

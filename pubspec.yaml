@@ -75,6 +75,7 @@ dependencies:
   google_maps_flutter_android: ^2.12.0
   google_maps_flutter_platform_interface: ^2.8.0
   location: ^7.0.0
+ 
   
 
 dev_dependencies:

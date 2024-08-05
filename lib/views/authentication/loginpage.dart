@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+// import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:sharecare/constants/constants.dart';
 import 'package:sharecare/views/Admin_panel/admin.dart';
 import 'package:sharecare/views/authentication/forgot_password.dart';
+import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:sharecare/services/auth_service.dart';
+import 'package:sharecare/views/authentication/reset_password.dart';
 import 'package:sharecare/views/authentication/signup.dart';
 import 'package:sharecare/views/entrypoint.dart';
-import 'package:sharecare/services/auth_service.dart';
-import 'package:sharecare/views/vendor/vendor_admin.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:sharecare/views/vendor/vendor_landing.dart';
+
+
+
 
 
 class CustomButton extends StatelessWidget {
@@ -45,6 +50,9 @@ class CustomButton extends StatelessWidget {
   }
 }
 
+
+
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -59,100 +67,89 @@ class _LoginScreenState extends State<LoginScreen> {
   final AuthService _authService = AuthService();
 
   void _login() async {
-  final email = _emailController.text;
-  final password = _passwordController.text;
+    final email = _emailController.text;
+    final password = _passwordController.text;
 
-  if (email.isEmpty || password.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Please enter both email and password',
-          style: TextStyle(color: kSecondary),
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Please enter both email and password',
+            style: TextStyle(color: kSecondary),
+          ),
+          backgroundColor: kPrimary,
         ),
-        backgroundColor: kPrimary,
-      ),
-    );
-    return;
-  }
+      );
+      return;
+    }
 
-  print('Attempting login with email: $email and password: $password');
+    print('Attempting login with email: $email and password: $password');
 
-  try {
-    final user = await _authService.signInWithEmailPassword(email, password);
-    if (user != null) {
-      print('Login successful for user: ${user.userId}');
+    try {
+      final user = await _authService.signInWithEmailPassword(email, password);
+      if (user != null) {
+        print('Login successful for user: ${user.userId}');
 
-      // Fetch user role from Firestore
-      final userDoc = await _authService.getUserData(user.userId);
-      if (userDoc != null) {
-        final role = userDoc.role;
-        if (role == 'admin') {
-          // Redirect to admin panel
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const AdminHomeScreen()),
-          );
-        } else if (role == 'donee') {
-          // Fetch vendor ID for donee
-          final vendorId = await _authService.getVendorId(user.userId);
-          if (vendorId != null) {
+        // Fetch user role from Firestore
+        final userDoc = await _authService.getUserData(user.userId);
+        if (userDoc != null) {
+          final role = userDoc.role;
+          if (role == 'admin') {
+            // Redirect to admin panel
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => VendorAdminDashboard(vendorId: vendorId)),
+              MaterialPageRoute(builder: (context) => const AdminHomeScreen()),
+            );
+          } else if (role == 'donee') {
+            // Redirect to business registration check page
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => BusinessRegistrationCheckPage(userId: user.userId)),
             );
           } else {
-            // Handle the case where the vendor ID is not found
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Vendor not found.'),
-                backgroundColor: kRed,
-              ),
+            // Redirect donors to the main screen
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => MainScreen()),
             );
           }
         } else {
-          // Redirect donors to the main screen
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => MainScreen()),
+          print('User document not found');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'User not found. Please check your credentials or register.',
+                style: TextStyle(color: kOffWhite),
+              ),
+              backgroundColor: kRed,
+            ),
           );
         }
       } else {
-        print('User document not found');
+        print('Login failed');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              'User not found. Please check your credentials or register.',
+              'Login failed. Please check your email and password or verify your email.',
               style: TextStyle(color: kOffWhite),
             ),
             backgroundColor: kRed,
           ),
         );
       }
-    } else {
-      print('Login failed');
+    } catch (e) {
+      print("Login error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Login failed. Please check your email and password or verify your email.',
+            'An error occurred during login. Please try again.',
             style: TextStyle(color: kOffWhite),
           ),
-          backgroundColor: kRed,
+          backgroundColor: kPrimaryLight,
         ),
       );
     }
-  } catch (e) {
-    print("Login error: $e");
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'An error occurred during login. Please try again.',
-          style: TextStyle(color: kOffWhite),
-        ),
-        backgroundColor: kPrimaryLight,
-      ),
-    );
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -244,11 +241,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ForgotPasswordPage()), // Replace with your Forgot Password screen
                       );
                     },
-                    child: const Text(
-                      'Forgot Password?',
-                      style: TextStyle(
-                        color: Colors.blueGrey,
-                        fontSize: 15,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const RequestPasswordResetPage()),
+                        );
+                      },
+                      child: const Text(
+                        'Forgot Password?',
+                        style: TextStyle(
+                          color: Colors.blueGrey,
+                          fontSize: 15,
+                        ),
                       ),
                     ),
                   ),

@@ -104,8 +104,7 @@ class AuthService {
     }
   }
 
- 
- // Get vendor ID for a donee user
+  // Get vendor ID for a donee user
   Future<String?> getVendorId(String userId) async {
     try {
       final querySnapshot = await _db.collection('vendors')
@@ -123,6 +122,23 @@ class AuthService {
       return null;
     }
   }
+
+  // Register a new vendor
+ // Register vendor for a donee user
+Future<String?> registerVendor(String userId, String businessName, String businessAddress) async {
+  try {
+    DocumentReference vendorRef = await _db.collection('vendors').add({
+      'businessName': businessName,
+      'businessAddress': businessAddress,
+      'owner': userId,  // Assuming the userId is passed and stored as 'owner'
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+    return vendorRef.id;
+  } catch (e) {
+    print("Error in registerVendor: $e");
+    return null;
+  }
+}
 
   // Update user data
   Future<void> updateUserData(AppUser user) async {

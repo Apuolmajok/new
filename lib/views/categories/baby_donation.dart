@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sharecare/views/categories/widget/babyconfirm.dart';
 import 'package:sharecare/views/entrypoint.dart';
-  // Ensure the file name matches
+
 
 class BabyDonationForm extends StatefulWidget {
   const BabyDonationForm({super.key});
@@ -11,16 +13,60 @@ class BabyDonationForm extends StatefulWidget {
 
 class _BabyDonationFormState extends State<BabyDonationForm> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _pickupDateController = TextEditingController();
-  final TextEditingController _preferredTimeController = TextEditingController();
+  final TextEditingController _babyDetailsController = TextEditingController();
+  final TextEditingController _wishMessageController = TextEditingController();
 
-  String? _selectedSource;
-  String? _booksType;
+  String? _selectedType;
   String? _vehicleType;
   bool _isAnonymous = false;
   int _quantity = 1;
 
   final Color turquoise = Colors.teal;
+
+  void _submitDonation(BuildContext context) async {
+    if (_formKey.currentState!.validate()) {
+      final donation = {
+        'category': 'Babycare',
+        'type': _selectedType,
+        'details': _babyDetailsController.text,
+        'quantity': _quantity,
+        'vehicleType': _vehicleType,
+        'isAnonymous': _isAnonymous,
+        'wishMessage': _wishMessageController.text,
+        'donationDate': DateTime.now(),
+      };
+
+      await FirebaseFirestore.instance.collection('donations').add(donation);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Thank you for donating these baby care items!')),
+      );
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => MainScreen()),
+        (Route<dynamic> route) => false,
+      );
+    }
+  }
+
+  void _navigateToConfirmation() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ConfirmationPage4(
+          type: _selectedType,
+          vehicleType: _vehicleType,
+          quantity: _quantity,
+          isAnonymous: _isAnonymous,
+        ),
+      ),
+    ).then((value) {
+      if (value == true) {
+        _submitDonation(context);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,9 +83,9 @@ class _BabyDonationFormState extends State<BabyDonationForm> {
             children: [
               const SizedBox(height: 16.0),
               const Text('Select items to donate'),
-              _buildBabyTypeSelector(),
+              _buildTypeSelector(),
               const SizedBox(height: 16.0),
-              _buildBabyDetailsField(),
+              _buildDetailsField(),
               const SizedBox(height: 16.0),
               _buildQuantitySelector(),
               const SizedBox(height: 16.0),
@@ -50,21 +96,9 @@ class _BabyDonationFormState extends State<BabyDonationForm> {
               _buildAnonymousSwitch(),
               const SizedBox(height: 16.0),
               ElevatedButton(
-                onPressed: _submitForm,
+                onPressed: _navigateToConfirmation,
                 child: const Text('Donate'),
-
               ),
-            
-              // ElevatedButton(
-              //     onPressed: () {
-              //       Navigator.push(
-              //         context,
-              //         MaterialPageRoute(builder: (context) => FundsPage()),
-                    
-              //       );
-              //     },
-              //     child: Text('go to funds donation'),
-              // ),
             ],
           ),
         ),
@@ -72,17 +106,17 @@ class _BabyDonationFormState extends State<BabyDonationForm> {
     );
   }
 
-  Widget _buildBabyTypeSelector() {
+  Widget _buildTypeSelector() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: ['pampers', 'babyfood', 'toys', 'clothes'].map((type) {
+      children: ['Pampers', 'Babyfood', 'Toys', 'Clothes'].map((type) {
         return ChoiceChip(
           label: Text(type),
-          selected: _booksType == type,
+          selected: _selectedType == type,
           selectedColor: turquoise,
           onSelected: (selected) {
             setState(() {
-              _booksType = selected ? type : null;
+              _selectedType = selected ? type : null;
             });
           },
         );
@@ -90,15 +124,15 @@ class _BabyDonationFormState extends State<BabyDonationForm> {
     );
   }
 
-  Widget _buildBabyDetailsField() {
+  Widget _buildDetailsField() {
     return TextFormField(
+      controller: _babyDetailsController,
       decoration: const InputDecoration(
         labelText: 'Edit some details',
-        hintText:
-            'e.g. powdered milk (5tins or packets)',
+        hintText: 'e.g. powdered milk (5 tins or packets)',
         border: OutlineInputBorder(),
       ),
-maxLines: 3,
+      maxLines: 3,
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Please enter some details';
@@ -171,9 +205,10 @@ maxLines: 3,
 
   Widget _buildWishMessageField() {
     return TextFormField(
+      controller: _wishMessageController,
       decoration: const InputDecoration(
         labelText: 'Add a message (optional)',
-        hintText: 'hope this helps ',
+        hintText: 'Hope this helps',
         border: OutlineInputBorder(),
       ),
       maxLines: 2,
@@ -195,20 +230,5 @@ maxLines: 3,
         ),
       ],
     );
-  }
-
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      // Process the data and navigate to the next page
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MainScreen(),
-        ),
-      );
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Form submitted successfully!')),
-      );
-    }
   }
 }

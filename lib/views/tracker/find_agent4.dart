@@ -8,11 +8,13 @@ class LocatingPickupAgentPage extends StatefulWidget {
   const LocatingPickupAgentPage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _LocatingPickupAgentPageState createState() =>
       _LocatingPickupAgentPageState();
 }
 
 class _LocatingPickupAgentPageState extends State<LocatingPickupAgentPage> {
+  // ignore: unused_field
   GoogleMapController? _mapController;
   LatLng? _currentLocation;
   Set<Marker> _markers = {};
@@ -182,14 +184,16 @@ class _LocatingPickupAgentPageState extends State<LocatingPickupAgentPage> {
 }
 
 class AgentFoundPage extends StatelessWidget {
+  const AgentFoundPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Agent Found'),
+        title: const Text('Agent Found'),
         backgroundColor: kPrimary,
       ),
-      body: Center(
+      body: const Center(
         child: Text(
           'Pickup agent has been found!',
           style: TextStyle(fontSize: 24.0),

@@ -1,46 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sharecare/views/entrypoint.dart';
-import 'package:sharecare/views/tracker/pickup1.dart';
 
-class ConfirmationPage extends StatelessWidget {
-  final String? selectedSource;
-  final String? foodType;
+class ConfirmationPage4 extends StatelessWidget {
+  final String? type;
   final String? vehicleType;
   final int quantity;
   final bool isAnonymous;
 
-  const ConfirmationPage({
+  const ConfirmationPage4({
     super.key,
-    required this.selectedSource,
-    required this.foodType,
+    required this.type,
     required this.vehicleType,
     required this.quantity,
     required this.isAnonymous,
   });
-
-  Future<void> _submitDonation(BuildContext context) async {
-    final donation = {
-      'source': selectedSource,
-      'foodType': foodType,
-      'quantity': quantity,
-      'vehicleType': vehicleType,
-      'isAnonymous': isAnonymous,
-      'donationDate': DateTime.now(),
-    };
-
-    await FirebaseFirestore.instance.collection('food_donations').add(donation);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Thank you for your donation!')),
-    );
-
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => MainScreen()),
-      (Route<dynamic> route) => false,
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,21 +37,19 @@ class ConfirmationPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   ElevatedButton(
-                    onPressed: () => _submitDonation(context),
+                    onPressed: () {
+                      Navigator.pop(context); // Go back to the form page
+                    },
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.teal,
                       backgroundColor: Colors.white,
                       side: const BorderSide(color: Colors.tealAccent),
                     ),
-                    child: const Text('Submit'),
+                    child: const Text('Back'),
                   ),
                   ElevatedButton(
-                    onPressed:(){
-                      Navigator.push(
-                        context,
-                         MaterialPageRoute(
-                          builder: (context) =>
-                          const SetPickupLocationPage()),);
+                    onPressed: () {
+                      Navigator.pop(context, true); // Confirm the donation
                     },
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
@@ -137,10 +107,9 @@ class ConfirmationPage extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildDetailRow('Donation Category', 'Food'),
-        _buildDetailRow('Food Type', foodType),
-        _buildDetailRow('Source of Food', selectedSource),
-        _buildDetailRow('Food Quantity', '$quantity people Approx.'),
+        _buildDetailRow('Donation Category', 'Babycare'),
+        _buildDetailRow('Type', type),
+        _buildDetailRow('Quantity', '$quantity items Approx.'),
         _buildDetailRow('Charity Organization', 'Goodwill Charity'),
         _buildDetailRow('Vehicle Type', vehicleType),
         _buildDetailRow('You have chosen to donate anonymously', isAnonymous ? 'Yes' : 'No'),

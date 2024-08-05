@@ -4,22 +4,20 @@ class UrgentNeedsService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   Stream<List<Map<String, dynamic>>> getRecentUrgentNeeds() {
-    return _db.collection('needs')
-      .orderBy('createdAt', descending: true)
-      .snapshots()
-      .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
+    return _db.collection('urgentNeeds').snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+    });
   }
-}
 
+  Future<void> addUrgentNeed(Map<String, dynamic> urgentNeed) async {
+    await _db.collection('urgentNeeds').add(urgentNeed);
+  }
 
+  Future<void> updateUrgentNeed(String id, Map<String, dynamic> urgentNeed) async {
+    await _db.collection('urgentNeeds').doc(id).update(urgentNeed);
+  }
 
-class QuotesService {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
-
-  Stream<List<Map<String, dynamic>>> getRecentQuotes() {
-    return _db.collection('quotes')
-      .orderBy('createdAt', descending: true)
-      .snapshots()
-      .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
+  Future<void> deleteUrgentNeed(String id) async {
+    await _db.collection('urgentNeeds').doc(id).delete();
   }
 }

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sharecare/common/app_style.dart';
 import 'package:sharecare/common/reusabletext.dart';
 import 'package:sharecare/constants/constants.dart';
-import 'package:sharecare/models/category_model/food_model.dart';
+
 import 'package:sharecare/views/categories/FOOD%20copy/confirmation_page.dart';
 
 class FoodDonationForm extends StatefulWidget {
@@ -28,42 +27,8 @@ class _FoodDonationFormState extends State<FoodDonationForm> {
   bool _isAnonymous = false;
   int _quantity = 1;
 
-  Future<void> _submitDonation() async {
+  void _submitForm() {
     if (_formKey.currentState!.validate()) {
-      final cookedDate = _dateFormat.parse(_cookedDateController.text);
-      final expiryDate = _dateFormat.parse(_expiryDateController.text);
-
-      final donation = FoodDonation(
-        source: _selectedSource,
-        foodType: _foodType,
-        foodItems: _foodItemsController.text,
-        cookedDate: cookedDate,
-        expiryDate: expiryDate,
-        quantity: _quantity,
-        vehicleType: _vehicleType,
-        isAnonymous: _isAnonymous,
-        wishMessage: _wishMessageController.text,
-        donationDate: DateTime.now(),
-      );
-
-      await FirebaseFirestore.instance.collection('food_donations').add(donation.toMap());
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Thank you for your donation!')),
-      );
-
-      _foodItemsController.clear();
-      _cookedDateController.clear();
-      _expiryDateController.clear();
-      _wishMessageController.clear();
-      setState(() {
-        _selectedSource = null;
-        _foodType = null;
-        _vehicleType = null;
-        _isAnonymous = false;
-        _quantity = 1;
-      });
-
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -146,7 +111,7 @@ class _FoodDonationFormState extends State<FoodDonationForm> {
                     backgroundColor: kPrimary,
                     foregroundColor: Colors.white,
                   ),
-                  onPressed: _submitDonation,
+                  onPressed: _submitForm,
                   child: const Text('Next'),
                 ),
               ],

@@ -5,7 +5,6 @@ import 'package:sharecare/common/app_style.dart';
 import 'package:sharecare/common/background_container.dart';
 import 'package:sharecare/common/reusabletext.dart';
 import 'package:sharecare/constants/constants.dart';
-import 'package:sharecare/views/home/widgets/impact_tiles.dart';
 import 'package:sharecare/views/home/widgets/quotes_tiles.dart';
 
 class AllQuotes extends StatelessWidget {

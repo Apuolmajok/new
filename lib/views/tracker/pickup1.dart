@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sharecare/constants/constants.dart';
+import 'package:sharecare/views/tracker/Map_page2.dart';
 
 class SetPickupLocationPage extends StatefulWidget {
   const SetPickupLocationPage({super.key});
@@ -46,7 +47,12 @@ class _SetPickupLocationPageState extends State<SetPickupLocationPage> {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context, 
+                 MaterialPageRoute(
+                  builder: (context)=> GoogleMapsPage()),);
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: kPrimaryLight,
                 padding: const EdgeInsets.symmetric(vertical: 16.0),

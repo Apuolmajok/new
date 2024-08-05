@@ -106,7 +106,7 @@ class _RoutePageState extends State<RoutePage> {
                   markers: _markers,
                   polylines: {
                     Polyline(
-                      polylineId: PolylineId('route'),
+                      polylineId: const PolylineId('route'),
                       points: _routePoints,
                       color: kPrimary,
                       width: 5,
