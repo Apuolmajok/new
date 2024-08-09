@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:sharecare/services/auth_service.dart';
 import 'package:sharecare/views/vendor/vendor_admin.dart'; // Vendor dashboard
 
@@ -15,22 +17,42 @@ class _VendorRegistrationScreenState extends State<VendorRegistrationScreen> {
   final TextEditingController _businessNameController = TextEditingController();
   final TextEditingController _businessAddressController = TextEditingController();
   final AuthService _authService = AuthService();
+  File? _selectedImage;
+  String? _logoUrl;
+
+  Future<void> _pickImage() async {
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
 
   void _registerVendor() async {
     final businessName = _businessNameController.text;
     final businessAddress = _businessAddressController.text;
 
-    if (businessName.isEmpty || businessAddress.isEmpty) {
+    if (businessName.isEmpty || businessAddress.isEmpty || _selectedImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please fill out all fields'),
+          content: Text('Please fill out all fields and select a logo'),
         ),
       );
       return;
     }
 
     try {
-      String? vendorId = await _authService.registerVendor(widget.userId, businessName, businessAddress);
+      // Upload the logo image and get the URL
+      _logoUrl = await _authService.uploadVendorLogo(widget.userId, _selectedImage!);
+
+      String? vendorId = await _authService.registerVendor(
+        widget.userId,
+        businessName,
+        businessAddress,
+        _logoUrl!, // Pass the logo URL
+      );
+
       if (vendorId != null) {
         Navigator.pushReplacement(
           context,
@@ -78,6 +100,14 @@ class _VendorRegistrationScreenState extends State<VendorRegistrationScreen> {
               ),
             ),
             const SizedBox(height: 16),
+            _selectedImage != null
+                ? Image.file(_selectedImage!, height: 150, width: 150)
+                : const Text('No logo selected'),
+            ElevatedButton(
+              onPressed: _pickImage,
+              child: const Text('Select Business Logo'),
+            ),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _registerVendor,
               child: const Text('Register Business'),
@@ -87,7 +117,9 @@ class _VendorRegistrationScreenState extends State<VendorRegistrationScreen> {
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => VendorAdminDashboard(vendorId: widget.userId)), // Assuming userId is also the vendorId here
+                  MaterialPageRoute(
+                    builder: (context) => VendorAdminDashboard(vendorId: widget.userId),
+                  ),
                 );
               },
               child: const Text('Go to Dashboard'),

@@ -20,7 +20,7 @@ class UrgentneedsTiles extends StatelessWidget {
           Container(
             margin: EdgeInsets.only(bottom: 8.h),
             height: 70.h,
-            width: width,
+            width: double.infinity,
             decoration: BoxDecoration(
               color: kOffWhite,
               borderRadius: BorderRadius.circular(9.r),
@@ -37,9 +37,12 @@ class UrgentneedsTiles extends StatelessWidget {
                         SizedBox(
                           height: 50.h,
                           width: 50.h,
-                          child: Image.asset(
-                            urgentneed['imageUrl'],
+                          child: Image.network(
+                            urgentneed['imageUrl'] ?? 'https://via.placeholder.com/150',
                             fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(Icons.error, color: kRed);
+                            },
                           ),
                         ),
                         Positioned(
@@ -48,9 +51,9 @@ class UrgentneedsTiles extends StatelessWidget {
                             padding: EdgeInsets.only(left: 6.w, bottom: 2.h),
                             color: kGray.withOpacity(0.6),
                             height: 16.h,
-                            width: width,
+                            width: double.infinity,
                             child: RatingBarIndicator(
-                              rating: 5,
+                              rating: (urgentneed['rating'] ?? 0).toDouble(),
                               itemCount: 5,
                               itemBuilder: (context, i) => const Icon(
                                 Icons.star,
@@ -71,23 +74,23 @@ class UrgentneedsTiles extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ReusableText(
-                        text: urgentneed['title'],
+                        text: urgentneed['title'] ?? 'No title',
                         style: appStyle(11, kDark, FontWeight.w400),
                       ),
                       ReusableText(
-                        text: "Donation time: ${urgentneed['time']}",
+                        text: "Donation time: ${urgentneed['time'] ?? 'No time'}",
                         style: appStyle(11, kGray, FontWeight.w400),
                       ),
                       SizedBox(
                         width: width * 0.7,
                         child: Text(
-                          urgentneed['coords']['address'],
+                          urgentneed['coords']?['address'] ?? 'No address',
                           overflow: TextOverflow.ellipsis,
                           style: appStyle(9, kGray, FontWeight.w400),
                         ),
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
@@ -99,18 +102,19 @@ class UrgentneedsTiles extends StatelessWidget {
               height: 19.h,
               width: 60.w,
               decoration: BoxDecoration(
-                  color: urgentneed['isAvailable'] == true ||
-                          urgentneed['isAvailable'] == null
-                      ? kPrimary
-                      : kSecondaryLight,
-                  borderRadius: BorderRadius.circular(10.r)),
+                color: urgentneed['isAvailable'] == true || urgentneed['isAvailable'] == null
+                    ? kPrimary
+                    : kSecondaryLight,
+                borderRadius: BorderRadius.circular(10.r),
+              ),
               child: Center(
-                  child: ReusableText(
-                      text: urgentneed['isAvailable'] == true ||
-                              urgentneed['isAvailable'] == null
-                          ? "Donate"
-                          : "Closed",
-                      style: appStyle(12, kLightWhite, FontWeight.w600))),
+                child: ReusableText(
+                  text: urgentneed['isAvailable'] == true || urgentneed['isAvailable'] == null
+                      ? "Donate"
+                      : "Closed",
+                  style: appStyle(12, kLightWhite, FontWeight.w600),
+                ),
+              ),
             ),
           ),
         ],

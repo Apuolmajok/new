@@ -42,16 +42,24 @@ class UrgentneedsWidget extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.all(8.w),
                 child: Stack(
-                  children: [
+                children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12.r),
                       child: SizedBox(
                         width: width * 0.8,
                         height: 112.h,
-                        child: Image.network(image, fit: BoxFit.cover),
+                        child: Image.network(
+                          image, // URL to the image
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(Icons.error, color: kRed); // Error icon if image fails to load
+                          },
+                        ),
                       ),
                     ),
-                    Positioned(
+ 
+
+                   Positioned(
                       right: 10.w,
                       top: 10.h,
                       child: ClipRRect(
@@ -63,16 +71,20 @@ class UrgentneedsWidget extends StatelessWidget {
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(20.r),
                               child: Image.network(
-                                logo,
+                                logo,  // The logo URL is used here
                                 fit: BoxFit.cover,
                                 width: 20.w,
                                 height: 20.h,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Icon(Icons.error, color: kRed);
+                                },
                               ),
                             ),
                           ),
                         ),
                       ),
                     ),
+
                   ],
                 ),
               ),

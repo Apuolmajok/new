@@ -1,10 +1,13 @@
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:sharecare/models/user.dart';
 
 class AuthService {
   final auth.FirebaseAuth _auth = auth.FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   // Create AppUser object based on Firebase User
   AppUser? _userFromFirebaseUser(auth.User? user) {
@@ -124,21 +127,32 @@ class AuthService {
   }
 
   // Register a new vendor
- // Register vendor for a donee user
-Future<String?> registerVendor(String userId, String businessName, String businessAddress) async {
-  try {
-    DocumentReference vendorRef = await _db.collection('vendors').add({
-      'businessName': businessName,
-      'businessAddress': businessAddress,
-      'owner': userId,  // Assuming the userId is passed and stored as 'owner'
-      'createdAt': FieldValue.serverTimestamp(),
-    });
-    return vendorRef.id;
-  } catch (e) {
-    print("Error in registerVendor: $e");
-    return null;
+  Future<String?> registerVendor(String userId, String businessName, String businessAddress, String logoUrl) async {
+    try {
+      final vendorDoc = await _db.collection('vendors').add({
+        'userId': userId,
+        'businessName': businessName,
+        'businessAddress': businessAddress,
+        'logoUrl': logoUrl,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      return vendorDoc.id;
+    } catch (e) {
+      print("Error in registerVendor: $e");
+      return null;
+    }
   }
-}
+
+  // Upload vendor logo
+  Future<String> uploadVendorLogo(String vendorId, File imageFile) async {
+    try {
+      final storageRef = _storage.ref().child('vendor_logos/$vendorId.png');
+      await storageRef.putFile(imageFile);
+      return await storageRef.getDownloadURL();
+    } catch (e) {
+      throw Exception('Error uploading logo: $e');
+    }
+  }
 
   // Update user data
   Future<void> updateUserData(AppUser user) async {
@@ -168,14 +182,12 @@ Future<String?> registerVendor(String userId, String businessName, String busine
       await _auth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
         verificationCompleted: (auth.PhoneAuthCredential credential) async {
-          // Automatically sign the user in when verification completes
           await _auth.signInWithCredential(credential);
         },
         verificationFailed: (auth.FirebaseAuthException e) {
           print(e.message);
         },
         codeSent: (String verificationId, int? resendToken) {
-          // Save the verification ID and send it to the callback
           codeSentCallback(auth.PhoneAuthProvider.credential(
             verificationId: verificationId,
             smsCode: '',

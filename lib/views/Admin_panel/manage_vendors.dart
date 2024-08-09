@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sharecare/constants/constants.dart';
 import 'package:sharecare/services/urgentneedservice.dart';
 import 'package:sharecare/views/vendor/v_form.dart';
-
+ // Correct import for the form
 
 class ManageVendorsScreen extends StatelessWidget {
   final UrgentNeedsService _urgentNeedsService = UrgentNeedsService();
@@ -27,10 +27,17 @@ class ManageVendorsScreen extends StatelessWidget {
 
   void _postToUrgentNeeds(BuildContext context, String vendorId) async {
     try {
+      final vendorDoc = await FirebaseFirestore.instance.collection('vendors').doc(vendorId).get();
+      final vendorData = vendorDoc.data()!;
       await _urgentNeedsService.addUrgentNeed({
         'vendorId': vendorId,
+        'imageUrl': vendorData['logoUrl'] ?? '',
+        'title': vendorData['businessName'] ?? '',
+        'time': FieldValue.serverTimestamp(),
+        'rating': vendorData['rating'] ?? 0,
+        'coords': vendorData['coords'] ?? {},
+        'isAvailable': true,
         'postedAt': FieldValue.serverTimestamp(),
-        // Add other necessary fields
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -86,6 +93,14 @@ class ManageVendorsScreen extends StatelessWidget {
             final vendor = vendors[index];
             final vendorData = vendor.data() as Map<String, dynamic>;
             return ListTile(
+              leading: CircleAvatar(
+                backgroundImage: vendorData['logoUrl'] != null
+                    ? NetworkImage(vendorData['logoUrl'])
+                    : null,
+                child: vendorData['logoUrl'] == null
+                    ? const Icon(Icons.business)
+                    : null,
+              ),
               title: Text(vendorData['businessName']),
               subtitle: Text(vendorData['businessAddress']),
               trailing: Row(
@@ -98,8 +113,8 @@ class ManageVendorsScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => VendorRegistrationForm(
-                            vendorId: vendor.id,
-                            vendorData: vendorData,
+                            vendorId: vendor.id,  // Provide the vendorId here
+                            vendorData: vendorData,  // Pass the existing data for editing
                           ),
                         ),
                       );
@@ -110,7 +125,7 @@ class ManageVendorsScreen extends StatelessWidget {
                     onPressed: () => _deleteVendor(context, vendor.id),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.priority_high, color:kPrimary ,),
+                    icon: const Icon(Icons.priority_high, color: kPrimary,),
                     onPressed: () => _postToUrgentNeeds(context, vendor.id),
                   ),
                   IconButton(
